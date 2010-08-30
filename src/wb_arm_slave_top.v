@@ -7,7 +7,7 @@
 module 
   wb_arm_slave_top
   #(
-    parameter AWIDTH = 8,
+    parameter AWIDTH = 32,
     parameter DWIDTH = 32
   ) 
   (
@@ -49,7 +49,7 @@ module
   
   // -----------------------------
   //  ahb_haddr & control flops
-  wire flop_en = ahb_hready_in & ahb_hsel;
+  wire flop_en = ahb_hready_in & ahb_hsel & ~ahb_data_phase;
   
   reg [AWIDTH-1:0] ahb_haddr_r;
   always @ (posedge ahb_hclk)
@@ -86,15 +86,17 @@ module
   wire ahb_data_phase;
   wire fsm_error;
   
-  wb_arm_phase_fsm i_wb_arm_phase_fsm(
-                                        .ahb_hclk       (ahb_hclk),
-                                        .ahb_hreset     (ahb_hreset),
-                                        .ahb_hsel       (ahb_hsel),
-                                        .ahb_hready_in  (ahb_hready_in),
-                                        .ahb_hready_out (ahb_hready_out),
-                                        .ahb_data_phase (ahb_data_phase),
-                                        .fsm_error      (fsm_error)
-                                      );
+  wb_arm_phase_fsm 
+    i_wb_arm_phase_fsm(
+      .ahb_hclk       (ahb_hclk),
+      .ahb_hreset     (ahb_hreset),
+      .ahb_hsel       (ahb_hsel),
+      .ahb_hready_in  (ahb_hready_in),
+      .ahb_hready_out (ahb_hready_out),
+      .ahb_htrans     (ahb_htrans),
+      .ahb_data_phase (ahb_data_phase),
+      .fsm_error      (fsm_error)
+    );
                         
                         
   // -----------------------------

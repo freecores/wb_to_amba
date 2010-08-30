@@ -6,15 +6,21 @@
 
 
 
-module wb_arm_phase_fsm(
-                          input   ahb_hclk,
-                          input   ahb_hreset,
-                          input   ahb_hsel,
-                          input   ahb_hready_in,
-                          input   ahb_hready_out,
-                          output  ahb_data_phase,
-                          output  fsm_error
-                        );
+module 
+  wb_arm_phase_fsm(
+    input       ahb_hclk,
+    input       ahb_hreset,
+    input       ahb_hsel,
+    input       ahb_hready_in,
+    input       ahb_hready_out,
+    input [1:0] ahb_htrans,
+    output      ahb_data_phase,
+    output      fsm_error
+  );
+
+  // -----------------------------
+  //  do_transfer if not IDLE or BUSY
+  wire do_transfer = (ahb_htrans == 2'b10) | (ahb_htrans == 2'b11);
 
 
   // -----------------------------
@@ -22,7 +28,7 @@ module wb_arm_phase_fsm(
   parameter IDLE_STATE  = 3'b001;
   parameter DATA_STATE  = 3'b010;
   parameter ERROR_STATE = 3'b100;
-  
+
 
   // -----------------------------
   //  state machine flop
@@ -40,7 +46,7 @@ module wb_arm_phase_fsm(
   //  state machine
   always @(*)
     case(state)
-      IDLE_STATE:   if( ahb_hsel & ahb_hready_in )
+      IDLE_STATE:   if( ahb_hsel & ahb_hready_in & do_transfer)
                       next_state <= DATA_STATE;
                     else
                       next_state <= IDLE_STATE;
@@ -62,10 +68,6 @@ module wb_arm_phase_fsm(
   assign ahb_data_phase = (state == DATA_STATE);
   assign fsm_error      = (state == ERROR_STATE);
 
+
 endmodule
-
-
-
-
-
 
